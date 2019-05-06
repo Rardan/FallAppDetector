@@ -1,0 +1,24 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="FallApp.Views.AccelerometerPage"
+             xmlns:vm="clr-namespace:FallApp.ViewModels"
+             Title="{Binding Title}">
+
+    <ContentPage.BindingContext>
+        <vm:AccelerometerViewModel />
+    </ContentPage.BindingContext>
+
+    <ContentPage.Content>
+        <Grid>
+            <Label Grid.Row="0" Grid.ColumnSpan="2" x:Name="LabelX" />
+            <Label Grid.Row="1" Grid.ColumnSpan="2" x:Name="LabelY" />
+            <Label Grid.Row="2" Grid.ColumnSpan="2" x:Name="LabelZ" />
+
+            <Button Grid.Row="3" Grid.Column="0" Text="Start" x:Name="ButtonStart"
+                    Clicked="ButtonStart_Clicked" />
+            <Button Grid.Row="3" Grid.Column="1" Text="Stop" x:Name="ButtonStop"
+                    Clicked="ButtonStop_Clicked" />
+        </Grid>
+    </ContentPage.Content>
+</ContentPage>

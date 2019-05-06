@@ -1,0 +1,31 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="FallApp.Views.ApplicationPage"
+             xmlns:vm="clr-namespace:FallApp.ViewModels"
+             Title="{Binding Title}">
+
+    <ContentPage.BindingContext>
+        <vm:ApplicationViewModel />
+    </ContentPage.BindingContext>
+    
+    <ContentPage.Content>
+        <StackLayout>
+            <Grid>
+                <Label Text="FallApp" 
+                   HorizontalOptions="Center" 
+                   VerticalOptions="CenterAndExpand" 
+                   Grid.Row="1" Grid.ColumnSpan="2"
+                       FontSize="Large"/>
+                <Label Text="Numer telefonu:" Grid.Row="3" Grid.Column="0" HorizontalTextAlignment="End" FontSize="Medium" />
+                <Label x:Name="telephone" Grid.Row="3" Grid.Column="1" HorizontalTextAlignment="Start" FontSize="Medium" />
+                <Button Text="STOP" 
+                    x:Name="stop"
+                    IsEnabled="False" 
+                    Grid.Row="10"
+                    Grid.RowSpan="10"
+                    Grid.ColumnSpan="2"/>
+            </Grid>
+        </StackLayout>
+    </ContentPage.Content>
+</ContentPage>

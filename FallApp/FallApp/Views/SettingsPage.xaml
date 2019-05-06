@@ -1,0 +1,27 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="FallApp.Views.SettingsPage"
+             xmlns:vm="clr-namespace:FallApp.ViewModels"
+             Title="{Binding Title}">
+
+    <ContentPage.BindingContext>
+        <vm:SettingsViewModel />
+    </ContentPage.BindingContext>
+    
+    
+    <ContentPage.Content>
+        <StackLayout>
+            <Grid>
+                <Label Grid.Row="1" Grid.Column="0" 
+                       Text="Nr telefonu:" FontSize="Large" 
+                       HorizontalTextAlignment="End"/>
+                <Entry Grid.Row="1" Grid.Column="1" 
+                       x:Name="telephone" Keyboard="Numeric"/>
+                <Button Grid.Row="4" Grid.RowSpan="2" Grid.ColumnSpan="2" 
+                        x:Name="save" Text="Zapisz"
+                        Clicked="Save_Clicked"/>
+            </Grid>
+        </StackLayout>
+    </ContentPage.Content>
+</ContentPage>
