@@ -20,11 +20,17 @@
                 <Label Text="Numer telefonu:" Grid.Row="3" Grid.Column="0" HorizontalTextAlignment="End" FontSize="Medium" />
                 <Label x:Name="telephone" Grid.Row="3" Grid.Column="1" HorizontalTextAlignment="Start" FontSize="Medium" />
                 <Button Text="STOP" 
-                    x:Name="stop"
+                    x:Name="stopButton"
                     IsEnabled="False" 
                     Grid.Row="10"
                     Grid.RowSpan="10"
-                    Grid.ColumnSpan="2"/>
+                    Grid.ColumnSpan="2"
+                    Clicked="StopButton_Clicked"/>
+                <Label Text="wykryto upadek!"
+                       Grid.Row="5" Grid.ColumnSpan="2"
+                       x:Name="fallDetectedLabel"
+                       HorizontalTextAlignment="Center"
+                       IsVisible="False"/>
             </Grid>
         </StackLayout>
     </ContentPage.Content>
