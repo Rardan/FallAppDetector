@@ -5,18 +5,33 @@ using System.Threading.Tasks;
 using Xamarin.Forms;
 using Xamarin.Forms.Xaml;
 using Xamarin.Essentials;
+using Plugin.Sensors;
+
 
 namespace FallApp.Views
 {
     [XamlCompilation(XamlCompilationOptions.Compile)]
     public partial class ApplicationPage : ContentPage
     {
-        public const int OKRES_PROBKOWANIA = 10; // W milisekundach
-        public const double DOLNA_GRANICA = 0.836;
-        public const double GORNA_GRANICA = 1.652;
-        public const double MAKS_AMPLITUDA_W_SPOCZYNKU = 0.05;
+        //public const int SAMPLING_FREQ = 10; // W milisekundach
+        //public const double LOWER_ACCEL_BOUNDRY = 0.836;
+        //public const double UPPER_ACCEL_BOUNDRY = 1.652;
+        //public const double MAX_RESTING_AMPLITUDE = 0.1;
+        //public const double MAX_ANGULAR_VELOCITY = 5; // w radianach/s
 
-        public float x, y, z;
+        public const int SAMPLING_FREQ = 10; // W milisekundach
+        public const double LOWER_ACCEL_BOUNDRY = 0.885;
+        public const double UPPER_ACCEL_BOUNDRY = 1.456;
+        public const double MAX_RESTING_AMPLITUDE = 0.3;
+        public const double MAX_ANGULAR_VELOCITY = 3.5; // w radianach/s
+
+        //public const int SAMPLING_FREQ = 10; // W milisekundach
+        //public double LOWER_ACCEL_BOUNDRY { get; set; }
+        //public double UPPER_ACCEL_BOUNDRY { get; set; }
+        //public double MAX_RESTING_AMPLITUDE { get; set; }
+        //public double MAX_ANGULAR_VELOCITY { get; set; }
+
+        public float x, y, z, gyroX, gyroY, gyroZ;
         private bool stopPressed;
         public ApplicationPage()
         {
@@ -28,6 +43,37 @@ namespace FallApp.Views
                 telephone.Text = arg;
             });
 
+            //MessagingCenter.Subscribe<SettingsPage, string>(this, "lab", (sender, arg) =>
+            //{
+            //    LOWER_ACCEL_BOUNDRY = Convert.ToDouble(arg);
+            //});
+
+            //MessagingCenter.Subscribe<SettingsPage, string>(this, "uab", (sender, arg) =>
+            //{
+            //    UPPER_ACCEL_BOUNDRY = Convert.ToDouble(arg);
+            //});
+
+            //MessagingCenter.Subscribe<SettingsPage, string>(this, "mra", (sender, arg) =>
+            //{
+            //    MAX_RESTING_AMPLITUDE = Convert.ToDouble(arg);
+            //});
+
+            //MessagingCenter.Subscribe<SettingsPage, string>(this, "mav", (sender, arg) =>
+            //{
+            //    MAX_ANGULAR_VELOCITY = Convert.ToDouble(arg);
+            //});
+
+            if (!Accelerometer.IsMonitoring)
+            {
+                Accelerometer.ReadingChanged += Accelerometer_ReadingChanged;
+                Accelerometer.Start(SensorSpeed.UI);
+            }
+            if (!Gyroscope.IsMonitoring)
+            {
+                Gyroscope.ReadingChanged += Gyroscope_ReadingChanged;
+                Gyroscope.Start(SensorSpeed.UI);
+            }
+
             FallTest();
         }
 
@@ -37,67 +83,115 @@ namespace FallApp.Views
             y = e.Reading.Acceleration.Y;
             z = e.Reading.Acceleration.Z;
         }
-
-        private void FallTest()
+        private void Gyroscope_ReadingChanged(object sender, GyroscopeChangedEventArgs e)
         {
-            if (Accelerometer.IsMonitoring)
-                return;
+            gyroX = e.Reading.AngularVelocity.X;
+            gyroY = e.Reading.AngularVelocity.Y;
+            gyroZ = e.Reading.AngularVelocity.Z;
+        }
 
-            Accelerometer.ReadingChanged += Accelerometer_ReadingChanged;
-            Accelerometer.Start(SensorSpeed.UI);
-
-            CircularBuffer<double> AccelAmps = new CircularBuffer<double>(2000 / OKRES_PROBKOWANIA);   //pamietamy wartosci z akcelometra przez ostatnie dwie sekundy
-            while (true)
+        private async Task FallTest()
+        {
+            CircularBuffer<double> AccelAmps = new CircularBuffer<double>(2000 / SAMPLING_FREQ);   //pamietamy wartosci z akcelometra przez ostatnie dwie sekundy
+            CircularBuffer<double> GyroAmps = new CircularBuffer<double>(2000 / SAMPLING_FREQ);   //pamietamy wartosci z gyroskopu przez ostatnie dwie sekund
             {
-                System.Threading.Thread.Sleep(OKRES_PROBKOWANIA);
-                AccelAmps.Enqueue(Math.Sqrt(Math.Pow(x, 2) + Math.Pow(y, 2) + Math.Pow(z, 2)));    // amplituda przyspieszen x,y,z
-                if (AccelAmps.q.Min() < DOLNA_GRANICA && AccelAmps.q.Max() > GORNA_GRANICA) // Sprawdzenie czy zostaly przekroczone dolne i gorne progi przyspieszenia
+                while (true)
                 {
-                    System.Threading.Thread.Sleep(3000);                                              // po mozliwym upadku czekamy trzy sekundy
-                    if (Math.Abs(AccelAmps.q.Min() - AccelAmps.q.Max()) < MAKS_AMPLITUDA_W_SPOCZYNKU) // i sprawdzamy czy telefon byl nieruchomy przez ostatnie dwie aby potwierdzic
+                    await Task.Delay(SAMPLING_FREQ);
+                    AccelAmps.Enqueue(Math.Sqrt(Math.Pow(x, 2) + Math.Pow(y, 2) + Math.Pow(z, 2)));    // amplituda przyspieszen x,y,z w accelometrze
+                    GyroAmps.Enqueue(Math.Sqrt(Math.Pow(gyroX, 2) + Math.Pow(gyroY, 2) + Math.Pow(gyroZ, 2)));    // amplituda prędkości x,y,z w żyroskopie
+                    if (AccelAmps.q.Min() < LOWER_ACCEL_BOUNDRY && AccelAmps.q.Max() > UPPER_ACCEL_BOUNDRY && AccelAmps.q.Max() > MAX_ANGULAR_VELOCITY) // Sprawdzenie czy zostaly przekroczone dolne i gorne progi przyspieszenia, oraz gorny prog prędkości kątowej gyroskopu
                     {
-                        /************************************ UPADEK ******************************/
-                        FallDetected();
-                    }
+                        for (int i = 0; i < 3000 / SAMPLING_FREQ; i++)
+                        {
+                            await Task.Delay(SAMPLING_FREQ);
+                            AccelAmps.Enqueue(Math.Sqrt(Math.Pow(x, 2) + Math.Pow(y, 2) + Math.Pow(z, 2)));    // amplituda przyspieszen x,y,z w accelometrze
+                            GyroAmps.Enqueue(Math.Sqrt(Math.Pow(gyroX, 2) + Math.Pow(gyroY, 2) + Math.Pow(gyroZ, 2)));    // amplituda prędkości x,y,z w żyroskopie
+                        }
+                        if (Math.Abs(AccelAmps.q.Min() - AccelAmps.q.Max()) < MAX_RESTING_AMPLITUDE) // i sprawdzamy czy telefon byl nieruchomy przez ostatnie dwie aby potwierdzic
+                        {
+                            /************************************ UPADEK ******************************/
+                            CrossSensors.Proximity.WhenReadingTaken().Subscribe(async reading =>
+                            {
+                                if (reading == true)
+                                {
+                                    await FallDetectedAsync();
+                                }
+                            });
+                        }
+
+                        //await Task.Delay(3000);                                              // po mozliwym upadku czekamy trzy sekundy
+                        //if (Math.Abs(AccelAmps.q .Min() - AccelAmps.q.Max()) < MAX_RESTING_AMPLITUDE) // i sprawdzamy czy telefon byl nieruchomy przez ostatnie dwie aby potwierdzic
+                        //{
+                        //    /************************************ UPADEK ******************************/
+                        //    await FallDetectedAsync();
+                        //    //CrossSensors.Proximity.WhenReadingTaken().Subscribe(async reading => {
+                        //    //    if (reading == true)
+                        //    //    {
+
+                            //    //    }
+                            //    //});
+                            //}
+                        }
                 }
             }
         }
-        /*
-         https://docs.microsoft.com/pl-pl/xamarin/essentials/gyroscope?context=xamarin/xamarin-forms – tutaj masz obsługę żyroskopu
 
-            Gyroscope.ReadingChanged += Gyroscope_ReadingChanged;
-            Gyroscope.Start(SensorSpeed.UI);
-
-            void Gyroscope_ReadingChanged(object sender, GyroscopeChangedEventArgs e)
-            {
-                var data = e.Reading;
-                //Console.WriteLine($"Reading: X: {data.AngularVelocity.X}, Y: {data.AngularVelocity.Y}, Z: {data.AngularVelocity.Z}");
-            }
-             */
         private void StopButton_Clicked(object sender, EventArgs e)
         {
             stopPressed = true;
+            Vibration.Cancel();
+            stopButton.IsEnabled = false;
+            fallDetectedLabel.IsVisible = false;
+
         }
 
-        private void FallDetected()
+        private async Task FallDetectedAsync()
         {
             stopPressed = false;
             stopButton.IsEnabled = true;
             fallDetectedLabel.IsVisible = true;
-            System.Threading.Thread.Sleep(10000);
-            if(stopPressed == false)
+            //System.Threading.Thread.Sleep(10000);
+
+            var duration = TimeSpan.FromSeconds(10);
+            Vibration.Vibrate(duration);
+
+            await Task.Delay(10000);
+            if (stopPressed == false)
             {
-                if(telephone.Text != null)
+                if (telephone.Text != null)
                 {
+                    string latitude = null;
+                    string longitude = null;
                     try
                     {
-                        var message = new SmsMessage("Pomocy, upadlem!", new[] { telephone.Text });
-                        Sms.ComposeAsync(message);
+                        var request = new GeolocationRequest(GeolocationAccuracy.Best);
+                        var location = await Geolocation.GetLocationAsync(request);
+
+                        if (location != null)
+                        {
+                            latitude = location.Latitude.ToString();
+                            longitude = location.Longitude.ToString();
+
+                            latitude = latitude.Replace(',', '.');
+                            longitude = longitude.Replace(',', '.');
+                        }
                     }
-                    catch (FeatureNotSupportedException ex)
+                    catch (FeatureNotSupportedException fnsEx)
+                    { }
+                    catch (FeatureNotEnabledException fneEx)
+                    { }
+                    catch (PermissionException pEx)
                     { }
                     catch (Exception ex)
                     { }
+
+                    if (latitude != null && longitude != null)
+                    {
+                        string link = "https://www.google.com/maps/search/?api=1&query=" + latitude + "," + longitude;
+                        string msg = "Pomocy, upadłem! Moja lokalizacja: " + link;
+                        await SendSms(msg, telephone.Text);
+                    }
                 }
             }
         }

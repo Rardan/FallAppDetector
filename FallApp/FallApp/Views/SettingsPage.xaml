@@ -18,7 +18,27 @@
                        HorizontalTextAlignment="End"/>
                 <Entry Grid.Row="1" Grid.Column="1" 
                        x:Name="telephone" Keyboard="Numeric"/>
-                <Button Grid.Row="4" Grid.RowSpan="2" Grid.ColumnSpan="2" 
+                <!--<Label Grid.Row="2" Grid.Column="0" 
+                       Text="LOWER_ACCEL_BOUNDRY:" FontSize="Large" 
+                       HorizontalTextAlignment="End"/>
+                <Entry Grid.Row="2" Grid.Column="1" 
+                       x:Name="L_A_B" Keyboard="Numeric"/>
+                <Label Grid.Row="3" Grid.Column="0" 
+                       Text="UPPER_ACCEL_BOUNDRY:" FontSize="Large" 
+                       HorizontalTextAlignment="End"/>
+                <Entry Grid.Row="3" Grid.Column="1" 
+                       x:Name="U_A_B" Keyboard="Numeric"/>
+                <Label Grid.Row="4" Grid.Column="0" 
+                       Text="MAX_RESTING_AMPLITUDE:" FontSize="Large" 
+                       HorizontalTextAlignment="End"/>
+                <Entry Grid.Row="4" Grid.Column="1" 
+                       x:Name="M_R_A" Keyboard="Numeric"/>
+                <Label Grid.Row="5" Grid.Column="0" 
+                       Text="MAX_ANGULAR_VELOCITY:" FontSize="Large" 
+                       HorizontalTextAlignment="End"/>
+                <Entry Grid.Row="5" Grid.Column="1" 
+                       x:Name="M_A_V" Keyboard="Numeric"/>-->
+                <Button Grid.Row="6" Grid.RowSpan="2" Grid.ColumnSpan="2" 
                         x:Name="save" Text="Zapisz"
                         Clicked="Save_Clicked"/>
             </Grid>

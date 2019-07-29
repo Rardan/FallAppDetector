@@ -35,9 +35,9 @@ namespace FallApp.Views
                     case (int)MenuItemType.Settings:
                         MenuPages.Add(id, new NavigationPage(new SettingsPage()));
                         break;
-                    case (int)MenuItemType.Accelerometer:
-                        MenuPages.Add(id, new NavigationPage(new AccelerometerPage()));
-                        break;
+                    //case (int)MenuItemType.Accelerometer:
+                    //    MenuPages.Add(id, new NavigationPage(new AccelerometerPage()));
+                    //    break;
                     case (int)MenuItemType.About:
                         MenuPages.Add(id, new NavigationPage(new AboutPage()));
                         break;
